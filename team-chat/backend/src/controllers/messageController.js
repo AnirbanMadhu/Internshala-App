@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Channel = require('../models/Channel');
+const { getFileType } = require('../middleware/upload');
 
 // @route   GET /api/messages?channelId=...&page=1&limit=50
 // @desc    Get messages for a channel
@@ -8,6 +9,7 @@ exports.getMessages = async (req, res) => {
   try {
     const { channelId, page = 1, limit = 50 } = req.query;
     const userId = req.user.userId;
+    const username = req.user.username;
 
     if (!channelId) {
       return res.status(400).json({ error: 'Channel ID is required' });
@@ -22,6 +24,26 @@ exports.getMessages = async (req, res) => {
 
     if (channel.isPrivate && !channel.members.some(m => m.toString() === userId)) {
       return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Auto-add user to public channel if not already a member
+    const wasAdded = !channel.members.some(m => m.toString() === userId);
+    if (!channel.isPrivate && wasAdded) {
+      channel.members.push(userId);
+      await channel.save();
+
+      // Notify via global io instance if available
+      if (global.io) {
+        const populatedChannel = await Channel.findById(channelId)
+          .populate('createdBy', 'username')
+          .populate('members', 'username email');
+        global.io.emit('channel:member-added', {
+          channelId,
+          userId,
+          username,
+          channel: populatedChannel
+        });
+      }
     }
 
     const skip = (page - 1) * limit;
@@ -63,8 +85,12 @@ exports.createMessage = async (req, res) => {
     const { channelId, content } = req.body;
     const { userId, username } = req.user;
 
-    if (!channelId || !content) {
-      return res.status(400).json({ error: 'Channel ID and content are required' });
+    if (!channelId) {
+      return res.status(400).json({ error: 'Channel ID is required' });
+    }
+
+    if (!content && !req.file) {
+      return res.status(400).json({ error: 'Message content or file is required' });
     }
 
     // Check if user has access to this channel
@@ -78,12 +104,42 @@ exports.createMessage = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const message = await Message.create({
+    // Auto-add user to public channel if not already a member
+    const wasAdded = !channel.members.some(m => m.toString() === userId);
+    if (!channel.isPrivate && wasAdded) {
+      channel.members.push(userId);
+      await channel.save();
+
+      // Notify via global io instance if available
+      if (global.io) {
+        const populatedChannel = await Channel.findById(channelId)
+          .populate('createdBy', 'username')
+          .populate('members', 'username email');
+        global.io.emit('channel:member-added', {
+          channelId,
+          userId,
+          username,
+          channel: populatedChannel
+        });
+      }
+    }
+
+    const messageData = {
       channelId,
       userId,
       username,
-      content,
-    });
+      content: content || '',
+    };
+
+    // If file is uploaded, add file information
+    if (req.file) {
+      messageData.fileUrl = `/uploads/${req.file.filename}`;
+      messageData.fileName = req.file.originalname;
+      messageData.fileType = getFileType(req.file.mimetype);
+      messageData.fileSize = req.file.size;
+    }
+
+    const message = await Message.create(messageData);
 
     res.status(201).json({ message });
   } catch (error) {
@@ -170,6 +226,7 @@ exports.searchMessages = async (req, res) => {
   try {
     const { channelId, query, page = 1, limit = 50 } = req.query;
     const userId = req.user.userId;
+    const username = req.user.username;
 
     if (!channelId) {
       return res.status(400).json({ error: 'Channel ID is required' });
@@ -188,6 +245,26 @@ exports.searchMessages = async (req, res) => {
 
     if (channel.isPrivate && !channel.members.some(m => m.toString() === userId)) {
       return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Auto-add user to public channel if not already a member
+    const wasAdded = !channel.members.some(m => m.toString() === userId);
+    if (!channel.isPrivate && wasAdded) {
+      channel.members.push(userId);
+      await channel.save();
+
+      // Notify via global io instance if available
+      if (global.io) {
+        const populatedChannel = await Channel.findById(channelId)
+          .populate('createdBy', 'username')
+          .populate('members', 'username email');
+        global.io.emit('channel:member-added', {
+          channelId,
+          userId,
+          username,
+          channel: populatedChannel
+        });
+      }
     }
 
     const skip = (page - 1) * limit;

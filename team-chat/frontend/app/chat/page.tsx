@@ -10,7 +10,11 @@ import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
 import { CreateChannelModal } from '@/components/chat/CreateChannelModal';
 import { SearchMessages } from '@/components/chat/SearchMessages';
+import { ChannelMembers } from '@/components/chat/ChannelMembers';
 import { Button } from '@/components/ui/Button';
+import { motion } from 'framer-motion';
+import { Search } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -123,7 +127,7 @@ export default function ChatPage() {
     }
   }, [selectedChannelId, socket]);
 
-  // Socket.io event handlers
+  // Socket.io event handlers for messages
   useEffect(() => {
     if (!socket || !selectedChannelId) return;
 
@@ -164,22 +168,46 @@ export default function ChatPage() {
     };
   }, [socket, selectedChannelId]);
 
+  // Socket.io event handler for channel updates (independent of selected channel)
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMemberAdded = (data: { channelId: string; channel: Channel }) => {
+      // Update the channels list with the new member info
+      setChannels((prev) =>
+        prev.map((ch) =>
+          ch._id === data.channelId ? data.channel : ch
+        )
+      );
+    };
+
+    socket.on('channel:member-added', handleMemberAdded);
+
+    return () => {
+      socket.off('channel:member-added', handleMemberAdded);
+    };
+  }, [socket]);
+
   // Send a new message to the current channel
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, file?: File) => {
     if (!selectedChannelId) return;
 
     try {
+      const formData = new FormData();
+      formData.append('channelId', selectedChannelId);
+      formData.append('content', content);
+
+      if (file) {
+        formData.append('file', file);
+      }
+
       const response = await fetch(`${API_URL}/api/messages`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
-        body: JSON.stringify({
-          channelId: selectedChannelId,
-          content,
-        }),
+        body: formData,
       });
 
       const data = await response.json();
@@ -194,6 +222,7 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      toast.error('Failed to send message');
       throw error;
     }
   };
@@ -219,11 +248,13 @@ export default function ChatPage() {
       if (response.ok) {
         await fetchChannels();
         setSelectedChannelId(data.channel._id);
+        toast.success(`Channel "${name}" created successfully!`);
       } else {
         throw new Error(data.error || 'Failed to create channel');
       }
     } catch (error) {
       console.error('Failed to create channel:', error);
+      toast.error('Failed to create channel');
       throw error;
     }
   };
@@ -247,11 +278,13 @@ export default function ChatPage() {
         if (socket) {
           socket.emit('message:edit', data.message);
         }
+        toast.success('Message updated successfully');
       } else {
         throw new Error(data.error || 'Failed to edit message');
       }
     } catch (error) {
       console.error('Failed to edit message:', error);
+      toast.error('Failed to edit message');
     }
   };
 
@@ -273,9 +306,11 @@ export default function ChatPage() {
           messageId,
           channelId: selectedChannelId,
         });
+        toast.success('Message deleted successfully');
       }
     } catch (error) {
       console.error('Failed to delete message:', error);
+      toast.error('Failed to delete message');
     }
   };
 
@@ -313,57 +348,103 @@ export default function ChatPage() {
         onRefreshChannels={fetchChannels}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex">
         {selectedChannel ? (
           <>
-            {/* Channel Header */}
-            <div className="bg-white border-b border-gray-300 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">
-                  {selectedChannel.isPrivate ? '🔒 ' : '# '}
-                  {selectedChannel.name}
-                </h2>
-                {selectedChannel.description && (
-                  <p className="text-sm text-gray-600">{selectedChannel.description}</p>
-                )}
-              </div>
+            {/* Main Chat Area */}
+            <div className="flex-1 flex flex-col">
+              {/* Channel Header */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm"
+              >
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    {selectedChannel.isPrivate ? '🔒' : '#'}
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {selectedChannel.name}
+                    </span>
+                  </h2>
+                  {selectedChannel.description && (
+                    <p className="text-sm text-gray-600 mt-1">{selectedChannel.description}</p>
+                  )}
+                </motion.div>
 
-              <Button onClick={() => setShowSearchModal(true)} variant="secondary" size="sm">
-                🔍 Search
-              </Button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSearchModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="font-medium">Search</span>
+                </motion.button>
+              </motion.div>
+
+              {/* Messages */}
+              <MessageList
+                messages={messages}
+                onLoadMore={handleLoadMore}
+                hasMore={hasMore}
+                loading={loading}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+              />
+
+              {/* Message Input */}
+              {selectedChannelId && (
+                <MessageInput
+                  channelId={selectedChannelId}
+                  onSendMessage={handleSendMessage}
+                  typingUsers={channelTypingUsers}
+                />
+              )}
             </div>
 
-            {/* Messages */}
-            <MessageList
-              messages={messages}
-              onLoadMore={handleLoadMore}
-              hasMore={hasMore}
-              loading={loading}
-              onEditMessage={handleEditMessage}
-              onDeleteMessage={handleDeleteMessage}
-            />
-
-            {/* Message Input */}
-            {selectedChannelId && (
-              <MessageInput
-                channelId={selectedChannelId}
-                onSendMessage={handleSendMessage}
-                typingUsers={channelTypingUsers}
-              />
-            )}
+            {/* Channel Members Sidebar */}
+            <ChannelMembers channel={selectedChannel} />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                Welcome to Team Chat!
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Select a channel or create a new one to start chatting
-              </p>
-              <Button onClick={() => setShowCreateModal(true)}>Create Channel</Button>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50"
+          >
+            <div className="text-center max-w-md px-4">
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-8"
+              >
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                  <span className="text-5xl">💬</span>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                  Welcome to Team Chat!
+                </h2>
+                <p className="text-gray-600 text-lg">
+                  Select a channel or create a new one to start chatting with your team
+                </p>
+              </motion.div>
+              <motion.button
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowCreateModal(true)}
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-2xl shadow-blue-500/50 transition-all"
+              >
+                Create Your First Channel
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 

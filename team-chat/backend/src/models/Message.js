@@ -17,9 +17,21 @@ const MessageSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: [true, 'Message content is required'],
     trim: true,
     maxlength: [2000, 'Message cannot exceed 2000 characters'],
+  },
+  fileUrl: {
+    type: String,
+  },
+  fileName: {
+    type: String,
+  },
+  fileType: {
+    type: String,
+    enum: ['image', 'video', 'audio', 'document', 'other'],
+  },
+  fileSize: {
+    type: Number,
   },
   edited: {
     type: Boolean,

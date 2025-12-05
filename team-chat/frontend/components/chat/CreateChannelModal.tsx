@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Hash, Lock, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 
 interface CreateChannelModalProps {
@@ -45,72 +46,167 @@ export const CreateChannelModal: React.FC<CreateChannelModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4">Create New Channel</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Channel Name"
-            type="text"
-            placeholder="e.g. general, random"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            maxLength={50}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (optional)
-            </label>
-            <textarea
-              placeholder="What is this channel about?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-              maxLength={200}
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="isPrivate"
-              checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-              className="mr-2 w-4 h-4"
-            />
-            <label htmlFor="isPrivate" className="text-sm text-gray-700">
-              Make this channel private (only visible to members)
-            </label>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <motion.h2
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-2xl font-bold text-gray-900"
+              >
+                Create New Channel
+              </motion.h2>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-6 h-6" />
+              </motion.button>
             </div>
-          )}
 
-          <div className="flex gap-2 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || !name.trim()}>
-              {loading ? 'Creating...' : 'Create Channel'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Input
+                  label="Channel Name"
+                  type="text"
+                  placeholder="e.g. general, random"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={50}
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (optional)
+                </label>
+                <textarea
+                  placeholder="What is this channel about?"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400 transition-all duration-200 resize-none"
+                  rows={3}
+                  maxLength={200}
+                />
+                <div className="text-xs text-gray-500 mt-1 text-right">
+                  {description.length}/200
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100"
+              >
+                <input
+                  type="checkbox"
+                  id="isPrivate"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="isPrivate" className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer flex-1">
+                  {isPrivate ? (
+                    <Lock className="w-4 h-4 text-blue-600" />
+                  ) : (
+                    <Hash className="w-4 h-4 text-gray-600" />
+                  )}
+                  <span className="font-medium">
+                    {isPrivate ? 'Private channel' : 'Public channel'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {isPrivate ? '(only visible to members)' : '(visible to everyone)'}
+                  </span>
+                </label>
+              </motion.div>
+
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="flex gap-3 justify-end pt-2"
+              >
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onClose}
+                  disabled={loading}
+                  className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: loading || !name.trim() ? 1 : 1.05 }}
+                  whileTap={{ scale: loading || !name.trim() ? 1 : 0.95 }}
+                  disabled={loading || !name.trim()}
+                  className={`px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg flex items-center gap-2 ${
+                    loading || !name.trim()
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-blue-500/50'
+                  } text-white`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      {isPrivate ? <Lock className="w-4 h-4" /> : <Hash className="w-4 h-4" />}
+                      Create Channel
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

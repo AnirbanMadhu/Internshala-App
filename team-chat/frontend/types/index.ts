@@ -11,8 +11,8 @@ export interface Channel {
   name: string;
   description?: string;
   isPrivate: boolean;
-  members: string[];
-  createdBy: string;
+  members: User[];
+  createdBy: string | User;
   createdAt: Date;
 }
 
@@ -22,8 +22,13 @@ export interface Message {
   userId: string;
   username: string;
   content: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: 'image' | 'video' | 'audio' | 'document' | 'other';
+  fileSize?: number;
   edited?: boolean;
   editedAt?: Date;
+  deleted?: boolean;
   createdAt: Date;
 }
 

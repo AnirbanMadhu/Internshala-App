@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Hash, Lock, Plus, RefreshCw, LogOut, Wifi, WifiOff } from 'lucide-react';
 import { Channel } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSocket } from '@/contexts/SocketContext';
-import { Button } from '@/components/ui/Button';
 
 interface SidebarProps {
   channels: Channel[];
@@ -22,116 +23,135 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRefreshChannels,
 }) => {
   const { user, logout } = useAuth();
-  const { onlineUsers, isConnected } = useSocket();
-  const [showOnlineUsers, setShowOnlineUsers] = useState(false);
+  const { isConnected } = useSocket();
 
   return (
-    <div className="w-64 bg-gray-800 text-white flex flex-col h-screen">
+    <motion.div
+      initial={{ x: -300, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col h-screen shadow-2xl"
+    >
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold mb-2">Team Chat</h1>
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="p-4 border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm"
+      >
+        <h1 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          Team Chat
+        </h1>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-300">{user?.username}</span>
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
+          <span className="text-gray-300 font-medium">{user?.username}</span>
+          <div className="flex items-center gap-3">
+            <motion.div
+              animate={isConnected ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="flex items-center gap-1"
               title={isConnected ? 'Connected' : 'Disconnected'}
-            />
-            <button
-              onClick={logout}
-              className="text-gray-400 hover:text-white text-xs"
             >
-              Logout
-            </button>
+              {isConnected ? (
+                <Wifi className="w-4 h-4 text-green-400" />
+              ) : (
+                <WifiOff className="w-4 h-4 text-red-400" />
+              )}
+            </motion.div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={logout}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Channels */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase">
-              Channels
-            </h2>
-            <button
-              onClick={onCreateChannel}
-              className="text-gray-400 hover:text-white text-xl leading-none"
-              title="Create channel"
-            >
-              +
-            </button>
-          </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+            Channels
+          </h2>
+          <motion.button
+            whileHover={{ scale: 1.2, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onCreateChannel}
+            className="text-gray-400 hover:text-white transition-colors"
+            title="Create channel"
+          >
+            <Plus className="w-5 h-5" />
+          </motion.button>
+        </div>
 
-          <div className="space-y-1">
-            {channels.map((channel) => (
-              <button
+        <motion.div className="space-y-1">
+          <AnimatePresence>
+            {channels.map((channel, index) => (
+              <motion.button
                 key={channel._id}
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -50, opacity: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ scale: 1.02, x: 5 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onChannelSelect(channel._id)}
-                className={`w-full text-left px-3 py-2 rounded ${
+                className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 ${
                   selectedChannelId === channel._id
-                    ? 'bg-blue-600 text-white'
-                    : 'hover:bg-gray-700 text-gray-300'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/50'
+                    : 'hover:bg-gray-700/50 text-gray-300'
                 }`}
               >
                 <div className="flex items-center">
-                  <span className="mr-2">{channel.isPrivate ? '🔒' : '#'}</span>
-                  <span className="truncate">{channel.name}</span>
+                  {channel.isPrivate ? (
+                    <Lock className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Hash className="w-4 h-4 mr-2" />
+                  )}
+                  <span className="truncate font-medium">{channel.name}</span>
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </AnimatePresence>
+        </motion.div>
 
-          {channels.length === 0 && (
-            <p className="text-gray-400 text-sm text-center py-4">
-              No channels yet. Create one to get started!
-            </p>
-          )}
-        </div>
-
-        {/* Online Users */}
-        <div className="p-4 border-t border-gray-700">
-          <button
-            onClick={() => setShowOnlineUsers(!showOnlineUsers)}
-            className="flex items-center justify-between w-full mb-3"
+        {channels.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-gray-400 text-sm text-center py-8"
           >
-            <h2 className="text-sm font-semibold text-gray-400 uppercase">
-              Online ({onlineUsers.length})
-            </h2>
-            <span className="text-gray-400">
-              {showOnlineUsers ? '▼' : '▶'}
-            </span>
-          </button>
-
-          {showOnlineUsers && (
-            <div className="space-y-2">
-              {onlineUsers.map((onlineUser) => (
-                <div
-                  key={onlineUser.userId}
-                  className="flex items-center text-sm text-gray-300"
-                >
-                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                  <span className="truncate">{onlineUser.username}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            <p className="mb-2">No channels yet</p>
+            <p className="text-xs text-gray-500">Create one to get started!</p>
+          </motion.div>
+        )}
       </div>
 
       {/* Refresh button */}
-      <div className="p-4 border-t border-gray-700">
-        <Button
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="p-4 border-t border-gray-700 bg-gray-900/30"
+      >
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={onRefreshChannels}
-          variant="secondary"
-          size="sm"
-          className="w-full"
+          className="w-full px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg"
         >
-          Refresh Channels
-        </Button>
-      </div>
-    </div>
+          <motion.div
+            animate={{ rotate: 0 }}
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.5 }}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </motion.div>
+          <span className="font-medium">Refresh Channels</span>
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 };
