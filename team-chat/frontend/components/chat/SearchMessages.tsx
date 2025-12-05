@@ -55,8 +55,8 @@ export const SearchMessages: React.FC<SearchMessagesProps> = ({
       }
 
       setResults(data.messages);
-    } catch (err: any) {
-      setError(err.message || 'Failed to search messages');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to search messages');
     } finally {
       setLoading(false);
     }

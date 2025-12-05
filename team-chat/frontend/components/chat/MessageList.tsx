@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2, Trash2, Check, X, Loader2, Image as ImageIcon, Video, Music, FileText, Download } from 'lucide-react';
+import { Edit2, Trash2, Check, X, Loader2, FileText, Download } from 'lucide-react';
 import { Message } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -33,15 +33,15 @@ export const MessageList: React.FC<MessageListProps> = ({
   const [editContent, setEditContent] = useState('');
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
     if (shouldScrollToBottom) {
       scrollToBottom();
     }
   }, [messages, shouldScrollToBottom]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   const handleScroll = () => {
     const container = messagesContainerRef.current;

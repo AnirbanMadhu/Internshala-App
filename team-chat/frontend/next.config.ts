@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         port: '3000',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'internshala-app-2xt0.onrender.com',
+        pathname: '/uploads/**',
+      },
     ],
   },
 
@@ -30,12 +35,13 @@ const nextConfig: NextConfig = {
 
   // Environment variables that should be available on the client side
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com',
+    NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL || 'https://internshala-app-2xt0.onrender.com',
   },
 
   // Webpack configuration
-  webpack: (config) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  webpack: (config: any) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',

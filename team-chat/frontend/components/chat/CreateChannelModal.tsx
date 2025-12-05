@@ -39,8 +39,8 @@ export const CreateChannelModal: React.FC<CreateChannelModalProps> = ({
       setDescription('');
       setIsPrivate(false);
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create channel');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create channel');
     } finally {
       setLoading(false);
     }

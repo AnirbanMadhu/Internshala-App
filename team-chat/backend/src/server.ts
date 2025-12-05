@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: process.env.CLIENT_URL || 'https://team-chat-frontend.onrender.com',
     credentials: true,
   },
 });
@@ -30,7 +30,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || 'https://team-chat-frontend.onrender.com',
   credentials: true,
 }));
 app.use(express.json());

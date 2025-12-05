@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Users, User as UserIcon, X } from 'lucide-react';
 import { Channel, User } from '@/types';
 import { useSocket } from '@/contexts/SocketContext';

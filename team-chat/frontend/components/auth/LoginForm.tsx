@@ -23,8 +23,8 @@ export const LoginForm: React.FC = () => {
     try {
       await login(email, password);
       router.push('/chat');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }

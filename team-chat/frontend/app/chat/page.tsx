@@ -11,7 +11,6 @@ import { MessageInput } from '@/components/chat/MessageInput';
 import { CreateChannelModal } from '@/components/chat/CreateChannelModal';
 import { SearchMessages } from '@/components/chat/SearchMessages';
 import { ChannelMembers } from '@/components/chat/ChannelMembers';
-import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import toast from 'react-hot-toast';

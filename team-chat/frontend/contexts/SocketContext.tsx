@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Message, OnlineUser, TypingUser } from '@/types';
+import { OnlineUser, TypingUser } from '@/types';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -88,6 +88,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, userId
       );
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(socketInstance);
 
     return () => {

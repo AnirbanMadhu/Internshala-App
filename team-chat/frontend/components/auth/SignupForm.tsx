@@ -36,8 +36,8 @@ export const SignupForm: React.FC = () => {
     try {
       await signup(username, email, password);
       router.push('/chat');
-    } catch (err: any) {
-      setError(err.message || 'Signup failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setLoading(false);
     }
