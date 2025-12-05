@@ -7,7 +7,7 @@ import { Message } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com';
 
 interface MessageListProps {
   messages: Message[];

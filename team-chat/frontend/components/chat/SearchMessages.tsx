@@ -7,7 +7,7 @@ import { Message } from '@/types';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com';
 
 interface SearchMessagesProps {
   channelId: string;
