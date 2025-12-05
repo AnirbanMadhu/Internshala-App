@@ -5,11 +5,11 @@ This guide shows you how to deploy the entire Team Chat Application stack using 
 ## What's Included
 
 The Docker setup includes:
-- **MongoDB** - Database (with persistent data volumes)
 - **Backend** - Node.js/Express API with Socket.io
 - **Frontend** - Next.js application
+- **MongoDB Atlas** - Cloud-hosted MongoDB (no local container needed)
 
-All three services run in isolated containers and communicate over a Docker network.
+Both services run in isolated containers and communicate over a Docker network, connecting to your existing MongoDB Atlas database.
 
 ## Prerequisites
 
@@ -32,22 +32,20 @@ git clone <your-repo-url>
 cd team-chat
 ```
 
-### 2. Create Environment File
-```bash
-# Copy the example env file
-cp .env.docker.example .env
+### 2. Use Your Existing .env File
 
-# Edit .env with your values (optional for development)
-```
-
-Default values in `.env`:
+Your `.env` file already contains:
 ```env
-MONGO_USERNAME=admin
-MONGO_PASSWORD=password123
+MONGODB_URI=mongodb+srv://...
 BACKEND_PORT=5000
 FRONTEND_PORT=3000
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+CLIENT_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
 ```
+
+**No changes needed!** The Docker setup will use your existing MongoDB Atlas connection.
 
 ### 3. Build and Start Services
 ```bash
@@ -61,10 +59,9 @@ docker compose up -d --build
 This will:
 - Build the backend Docker image
 - Build the frontend Docker image
-- Pull the MongoDB image
-- Start all three services
+- Start both services
 - Create a network for inter-service communication
-- Create persistent volumes for MongoDB data
+- Connect to your MongoDB Atlas database
 
 ### 4. Access the Application
 
@@ -81,7 +78,6 @@ docker compose logs -f
 # Specific service
 docker compose logs -f backend
 docker compose logs -f frontend
-docker compose logs -f mongodb
 ```
 
 ### 6. Stop Services
@@ -100,102 +96,40 @@ docker compose down -v
 
 ### 1. Update Environment Variables
 
-Create a `.env` file with production values:
+Your `.env` file already uses MongoDB Atlas. For production, ensure strong values:
 
 ```env
-# Strong MongoDB credentials
-MONGO_USERNAME=teamchat_admin
-MONGO_PASSWORD=<generate-strong-password-here>
+# MongoDB Atlas (already configured)
+MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/?appName=Cluster0
 
 # Backend configuration
 BACKEND_PORT=5000
 JWT_SECRET=<generate-strong-random-secret-here>
+CLIENT_URL=https://yourdomain.com
 
 # Frontend configuration
 FRONTEND_PORT=3000
-```
-
-**Generate Strong Secrets:**
-```bash
-# Generate JWT secret (Linux/Mac)
-openssl rand -base64 32
-
-# Generate password (Linux/Mac)
-openssl rand -base64 24
-```
-
-### 2. Production Docker Compose
-
-For production, you might want to use a cloud MongoDB instead of the containerized one:
-
-Create `docker-compose.prod.yml`:
-```yaml
-version: '3.8'
-
-services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
-    container_name: team-chat-backend
-    restart: always
-    ports:
-      - "5000:5000"
-    environment:
-      NODE_ENV: production
-      PORT: 5000
-      MONGODB_URI: ${MONGODB_URI}  # MongoDB Atlas or external DB
-      JWT_SECRET: ${JWT_SECRET}
-      CLIENT_URL: ${CLIENT_URL}
-    volumes:
-      - ./backend/uploads:/app/uploads
-    networks:
-      - team-chat-network
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
-    container_name: team-chat-frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
-    depends_on:
-      - backend
-    networks:
-      - team-chat-network
-
-networks:
-  team-chat-network:
-    driver: bridge
-```
-
-Production `.env`:
-```env
-# External MongoDB (Atlas or other)
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/team-chat?retryWrites=true&w=majority
-
-# JWT Secret
-JWT_SECRET=your-production-secret
-
-# URLs (adjust for your domain)
-CLIENT_URL=https://chat.yourdomain.com
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 NEXT_PUBLIC_SOCKET_URL=https://api.yourdomain.com
 ```
 
-Run production:
+**Generate Strong JWT Secret:**
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+# Generate JWT secret (Linux/Mac)
+openssl rand -base64 32
+
+# Windows (PowerShell)
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
 ```
+
+### 2. Deploy with Docker Compose
+
+Simply run the same command:
+```bash
+docker compose up -d --build
+```
+
+The services will use production values from your `.env` file.
 
 ## Docker Commands Reference
 
@@ -284,32 +218,18 @@ docker volume prune
 docker system prune -a --volumes
 ```
 
-## Accessing MongoDB
+## Accessing MongoDB Atlas
 
 ### Using MongoDB Compass
 1. Download: https://www.mongodb.com/try/download/compass
-2. Connection string: `mongodb://admin:password123@localhost:27017/?authSource=admin`
+2. Use your MongoDB Atlas connection string from `.env`
+3. Browse your data, collections, and documents
 
-### Using mongosh CLI
-```bash
-# Connect to MongoDB container
-docker compose exec mongodb mongosh -u admin -p password123
-
-# Show databases
-show dbs
-
-# Use team-chat database
-use team-chat
-
-# Show collections
-show collections
-
-# Query users
-db.users.find()
-
-# Query channels
-db.channels.find()
-```
+### Using MongoDB Atlas Web Interface
+1. Go to https://cloud.mongodb.com
+2. Login to your account
+3. Navigate to your cluster
+4. Click "Browse Collections" to view data
 
 ## Troubleshooting
 
@@ -346,15 +266,14 @@ docker compose ps
 docker compose restart backend
 ```
 
-### MongoDB Connection Failed
+### MongoDB Atlas Connection Failed
 ```bash
-# Check if MongoDB is running
-docker compose ps mongodb
+# Check backend logs for connection errors
+docker compose logs backend
 
-# Check MongoDB logs
-docker compose logs mongodb
-
-# Verify credentials in .env match docker-compose.yml
+# Verify MONGODB_URI in .env is correct
+# Ensure MongoDB Atlas allows connections from anywhere (0.0.0.0/0)
+# Check your MongoDB Atlas username and password
 ```
 
 ### Frontend Can't Connect to Backend
@@ -370,19 +289,11 @@ docker compose config
 ```
 
 ### Data Persistence
-```bash
-# List volumes
-docker volume ls
 
-# Inspect MongoDB volume
-docker volume inspect team-chat_mongodb_data
-
-# Backup MongoDB data
-docker compose exec mongodb mongodump --out /data/backup
-
-# Restore MongoDB data
-docker compose exec mongodb mongorestore /data/backup
-```
+All your data is stored in MongoDB Atlas cloud database:
+- Data persists even if you stop/remove Docker containers
+- Automatic backups available in MongoDB Atlas
+- No local volumes to manage
 
 ## File Structure
 
@@ -405,11 +316,13 @@ team-chat/
 ## Environment Variables
 
 ### Docker Compose (.env)
-- `MONGO_USERNAME` - MongoDB root username
-- `MONGO_PASSWORD` - MongoDB root password
+- `MONGODB_URI` - MongoDB Atlas connection string
 - `BACKEND_PORT` - Backend external port (default: 5000)
 - `FRONTEND_PORT` - Frontend external port (default: 3000)
 - `JWT_SECRET` - Secret key for JWT tokens
+- `CLIENT_URL` - Frontend URL for CORS
+- `NEXT_PUBLIC_API_URL` - Backend API URL for frontend
+- `NEXT_PUBLIC_SOCKET_URL` - Backend WebSocket URL for frontend
 
 ### Backend Service
 - `NODE_ENV` - Environment (production/development)
@@ -425,28 +338,28 @@ team-chat/
 
 ## Volumes
 
-Docker creates persistent volumes for MongoDB:
-- `mongodb_data` - Database files
-- `mongodb_config` - MongoDB configuration
+Docker creates a volume for file uploads:
+- `./backend/uploads` - User-uploaded files (mounted from host)
 
-Data persists even after `docker compose down`.
+Data persists on your host machine, even after `docker compose down`.
 
 ## Networks
 
 All services communicate over `team-chat-network` bridge network:
 - Services can reach each other using container names
-- Backend connects to MongoDB at `mongodb:27017`
-- Frontend connects to backend at `backend:5000` (internal)
+- Backend connects to MongoDB Atlas over the internet
+- Frontend connects to backend at `backend:5000` (internal) or via host ports
 
 ## Security Best Practices
 
-1. **Change default credentials**
-   - Update `MONGO_USERNAME` and `MONGO_PASSWORD`
+1. **Protect sensitive credentials**
+   - Use strong MongoDB Atlas password
    - Generate strong `JWT_SECRET`
+   - Never commit `.env` to version control
 
 2. **Use secrets management**
-   - Use Docker secrets for sensitive data
-   - Don't commit `.env` to version control
+   - Use Docker secrets for sensitive data in production
+   - Rotate credentials regularly
 
 3. **Run as non-root**
    - Images already configured to run as non-root users
