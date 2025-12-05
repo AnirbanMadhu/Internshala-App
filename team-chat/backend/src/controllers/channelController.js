@@ -57,6 +57,11 @@ exports.createChannel = async (req, res) => {
       .populate('createdBy', 'username')
       .populate('members', 'username');
 
+    // Broadcast new channel to all connected users
+    if (global.io) {
+      global.io.emit('channel:created', { channel: populatedChannel });
+    }
+
     res.status(201).json({ channel: populatedChannel });
   } catch (error) {
     console.error('Create channel error:', error);
@@ -118,6 +123,17 @@ exports.joinChannel = async (req, res) => {
       .populate('createdBy', 'username')
       .populate('members', 'username');
 
+    // Broadcast channel update to all users
+    if (global.io) {
+      global.io.emit('channel:updated', { channel: updatedChannel });
+      // Notify the channel that user joined
+      global.io.to(`channel:${id}`).emit('user:joined-channel', {
+        userId,
+        channelId: id,
+        username: req.user.username
+      });
+    }
+
     res.json({ channel: updatedChannel });
   } catch (error) {
     console.error('Join channel error:', error);
@@ -155,6 +171,21 @@ exports.leaveChannel = async (req, res) => {
 
     channel.members.splice(memberIndex, 1);
     await channel.save();
+
+    // Broadcast channel update to all users
+    const updatedChannel = await Channel.findById(id)
+      .populate('createdBy', 'username')
+      .populate('members', 'username');
+
+    if (global.io) {
+      global.io.emit('channel:updated', { channel: updatedChannel });
+      // Notify the channel that user left
+      global.io.to(`channel:${id}`).emit('user:left-channel', {
+        userId,
+        channelId: id,
+        username: req.user.username
+      });
+    }
 
     res.json({ message: 'Left channel successfully' });
   } catch (error) {

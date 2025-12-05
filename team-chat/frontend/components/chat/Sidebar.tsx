@@ -13,6 +13,7 @@ interface SidebarProps {
   onChannelSelect: (channelId: string) => void;
   onCreateChannel: () => void;
   onRefreshChannels: () => void;
+  unreadCounts?: Record<string, number>;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -21,6 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChannelSelect,
   onCreateChannel,
   onRefreshChannels,
+  unreadCounts = {},
 }) => {
   const { user, logout } = useAuth();
   const { isConnected } = useSocket();
@@ -104,13 +106,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     : 'hover:bg-gray-700/50 text-gray-300'
                 }`}
               >
-                <div className="flex items-center">
-                  {channel.isPrivate ? (
-                    <Lock className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Hash className="w-4 h-4 mr-2" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center min-w-0 flex-1">
+                    {channel.isPrivate ? (
+                      <Lock className="w-4 h-4 mr-2 flex-shrink-0" />
+                    ) : (
+                      <Hash className="w-4 h-4 mr-2 flex-shrink-0" />
+                    )}
+                    <span className="truncate font-medium">{channel.name}</span>
+                  </div>
+                  {unreadCounts[channel._id] && unreadCounts[channel._id] > 0 && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="ml-2 flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                    >
+                      {unreadCounts[channel._id] > 99 ? '99+' : unreadCounts[channel._id]}
+                    </motion.div>
                   )}
-                  <span className="truncate font-medium">{channel.name}</span>
                 </div>
               </motion.button>
             ))}

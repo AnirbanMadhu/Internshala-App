@@ -31,6 +31,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -113,6 +114,13 @@ export default function ChatPage() {
       setPage(1);
       fetchMessages(selectedChannelId, 1);
 
+      // Clear unread count for this channel
+      setUnreadCounts((prev) => {
+        const newCounts = { ...prev };
+        delete newCounts[selectedChannelId];
+        return newCounts;
+      });
+
       // Join socket room for this channel
       if (socket) {
         socket.emit('channel:join', selectedChannelId);
@@ -134,6 +142,17 @@ export default function ChatPage() {
     const handleNewMessage = (message: Message) => {
       if (message.channelId === selectedChannelId) {
         setMessages((prev) => [...prev, message]);
+      } else {
+        // Increment unread count for other channels
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.channelId]: (prev[message.channelId] || 0) + 1
+        }));
+        // Show notification for new message in other channel
+        const channel = channels.find(ch => ch._id === message.channelId);
+        if (channel) {
+          toast(`New message in #${channel.name}`);
+        }
       }
     };
 
@@ -166,7 +185,7 @@ export default function ChatPage() {
       socket.off('message:edited', handleMessageEdited);
       socket.off('message:deleted', handleMessageDeleted);
     };
-  }, [socket, selectedChannelId]);
+  }, [socket, selectedChannelId, channels]);
 
   // Socket.io event handler for channel updates (independent of selected channel)
   useEffect(() => {
@@ -181,12 +200,58 @@ export default function ChatPage() {
       );
     };
 
+    const handleChannelCreated = (data: { channel: Channel }) => {
+      // Add new channel to the list if user can access it
+      setChannels((prev) => {
+        // Check if channel already exists
+        if (prev.some(ch => ch._id === data.channel._id)) {
+          return prev;
+        }
+        // Add public channels or private channels where user is a member
+        if (!data.channel.isPrivate ||
+            data.channel.members.some(m => m._id === user?._id)) {
+          return [data.channel, ...prev];
+        }
+        return prev;
+      });
+      toast.success(`New channel "${data.channel.name}" created!`);
+    };
+
+    const handleChannelUpdated = (data: { channel: Channel }) => {
+      // Update channel in the list
+      setChannels((prev) =>
+        prev.map((ch) =>
+          ch._id === data.channel._id ? data.channel : ch
+        )
+      );
+    };
+
+    const handleUserJoinedChannel = (data: { userId: string; channelId: string; username: string }) => {
+      if (data.channelId === selectedChannelId && data.userId !== user?._id) {
+        toast.success(`${data.username} joined the channel`);
+      }
+    };
+
+    const handleUserLeftChannel = (data: { userId: string; channelId: string; username: string }) => {
+      if (data.channelId === selectedChannelId) {
+        toast(`${data.username} left the channel`);
+      }
+    };
+
     socket.on('channel:member-added', handleMemberAdded);
+    socket.on('channel:created', handleChannelCreated);
+    socket.on('channel:updated', handleChannelUpdated);
+    socket.on('user:joined-channel', handleUserJoinedChannel);
+    socket.on('user:left-channel', handleUserLeftChannel);
 
     return () => {
       socket.off('channel:member-added', handleMemberAdded);
+      socket.off('channel:created', handleChannelCreated);
+      socket.off('channel:updated', handleChannelUpdated);
+      socket.off('user:joined-channel', handleUserJoinedChannel);
+      socket.off('user:left-channel', handleUserLeftChannel);
     };
-  }, [socket]);
+  }, [socket, user, selectedChannelId]);
 
   // Send a new message to the current channel
   const handleSendMessage = async (content: string, file?: File) => {
@@ -346,6 +411,7 @@ export default function ChatPage() {
         onChannelSelect={setSelectedChannelId}
         onCreateChannel={() => setShowCreateModal(true)}
         onRefreshChannels={fetchChannels}
+        unreadCounts={unreadCounts}
       />
 
       <div className="flex-1 flex">
