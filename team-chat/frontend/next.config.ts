@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
 
+  // Enable Turbopack
+  turbopack: {},
+
   // Optimize images
   images: {
     domains: ['localhost'],

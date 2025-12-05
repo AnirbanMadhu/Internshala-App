@@ -128,8 +128,8 @@ export const createMessage = async (req: AuthRequest, res: Response): Promise<Re
     }
 
     const messageData: Partial<IMessage> = {
-      channelId,
-      userId,
+      channelId: new mongoose.Types.ObjectId(channelId),
+      userId: new mongoose.Types.ObjectId(userId),
       username,
       content: content || '',
     };

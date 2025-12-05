@@ -1,10 +1,8 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IChannel } from './Channel';
-import { IUser } from './User';
 
 export interface IMessage extends Document {
-  channelId: mongoose.Types.ObjectId | IChannel;
-  userId: mongoose.Types.ObjectId | IUser;
+  channelId: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   username: string;
   content?: string;
   fileUrl?: string;

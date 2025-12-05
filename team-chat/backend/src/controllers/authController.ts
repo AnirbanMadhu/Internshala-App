@@ -123,7 +123,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void | Res
 // @route   POST /api/auth/logout
 // @desc    Logout user
 // @access  Private
-export const logout = (req: AuthRequest, res: Response): void => {
+export const logout = (_req: AuthRequest, res: Response): void => {
   res.clearCookie('token');
   res.json({ message: 'Logged out successfully' });
 };

@@ -1,12 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IUser } from './User';
 
 export interface IChannel extends Document {
   name: string;
   description?: string;
   isPrivate: boolean;
-  members: mongoose.Types.ObjectId[] | IUser[];
-  createdBy: mongoose.Types.ObjectId | IUser;
+  members: mongoose.Types.ObjectId[];
+  createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
 }
 
