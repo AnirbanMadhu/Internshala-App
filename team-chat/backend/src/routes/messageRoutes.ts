@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import * as messageController from '../controllers/messageController';
+import authMiddleware from '../middleware/auth';
+import { upload } from '../middleware/upload';
+
 const router = express.Router();
-const messageController = require('../controllers/messageController');
-const authMiddleware = require('../middleware/auth');
-const { upload } = require('../middleware/upload');
 
 router.use(authMiddleware);
 
@@ -12,4 +13,4 @@ router.get('/search', messageController.searchMessages);
 router.patch('/:id', messageController.updateMessage);
 router.delete('/:id', messageController.deleteMessage);
 
-module.exports = router;
+export default router;

@@ -1,6 +1,7 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { Request } from 'express';
 
 // Create uploads directory if it doesn't exist
 const uploadDir = path.join(__dirname, '../../uploads');
@@ -10,10 +11,10 @@ if (!fs.existsSync(uploadDir)) {
 
 // Configure storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
+  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
     // Generate unique filename: timestamp-random-originalname
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
@@ -23,7 +24,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter to validate file types
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Allowed file types
   const allowedMimeTypes = [
     // Images
@@ -49,7 +50,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`File type ${file.mimetype} is not supported`), false);
+    cb(new Error(`File type ${file.mimetype} is not supported`));
   }
 };
 
@@ -63,7 +64,7 @@ const upload = multer({
 });
 
 // Helper function to determine file type
-const getFileType = (mimetype) => {
+export const getFileType = (mimetype: string): 'image' | 'video' | 'audio' | 'document' | 'other' => {
   if (mimetype.startsWith('image/')) return 'image';
   if (mimetype.startsWith('video/')) return 'video';
   if (mimetype.startsWith('audio/')) return 'audio';
@@ -73,4 +74,4 @@ const getFileType = (mimetype) => {
   return 'other';
 };
 
-module.exports = { upload, getFileType };
+export { upload };

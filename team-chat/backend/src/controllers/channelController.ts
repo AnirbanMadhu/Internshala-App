@@ -1,12 +1,14 @@
-const Channel = require('../models/Channel');
-const mongoose = require('mongoose');
+import { Response } from 'express';
+import Channel from '../models/Channel';
+import mongoose from 'mongoose';
+import { AuthRequest } from '../middleware/auth';
 
 // @route   GET /api/channels
 // @desc    Get all channels user can access
 // @access  Private
-exports.getChannels = async (req, res) => {
+export const getChannels = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     // Get all public channels and private channels where user is a member
     const channels = await Channel.find({
@@ -20,7 +22,7 @@ exports.getChannels = async (req, res) => {
     .sort({ createdAt: -1 });
 
     res.json({ channels });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get channels error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
@@ -29,10 +31,10 @@ exports.getChannels = async (req, res) => {
 // @route   POST /api/channels
 // @desc    Create new channel
 // @access  Private
-exports.createChannel = async (req, res) => {
+export const createChannel = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { name, description, isPrivate } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     if (!name) {
       return res.status(400).json({ error: 'Channel name is required' });
@@ -58,12 +60,12 @@ exports.createChannel = async (req, res) => {
       .populate('members', 'username');
 
     // Broadcast new channel to all connected users
-    if (global.io) {
-      global.io.emit('channel:created', { channel: populatedChannel });
+    if ((global as any).io) {
+      (global as any).io.emit('channel:created', { channel: populatedChannel });
     }
 
     res.status(201).json({ channel: populatedChannel });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create channel error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
@@ -72,10 +74,10 @@ exports.createChannel = async (req, res) => {
 // @route   GET /api/channels/:id
 // @desc    Get channel details
 // @access  Private
-exports.getChannel = async (req, res) => {
+export const getChannel = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { id } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     const channel = await Channel.findById(id)
       .populate('createdBy', 'username')
@@ -86,12 +88,12 @@ exports.getChannel = async (req, res) => {
     }
 
     // Check if user has access to this channel
-    if (channel.isPrivate && !channel.members.some(m => m._id.toString() === userId)) {
+    if (channel.isPrivate && !channel.members.some((m: any) => m._id.toString() === userId)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
     res.json({ channel });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get channel error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
@@ -100,10 +102,10 @@ exports.getChannel = async (req, res) => {
 // @route   POST /api/channels/:id/join
 // @desc    Join a channel
 // @access  Private
-exports.joinChannel = async (req, res) => {
+export const joinChannel = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { id } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     const channel = await Channel.findById(id);
 
@@ -112,11 +114,11 @@ exports.joinChannel = async (req, res) => {
     }
 
     // Check if user is already a member
-    if (channel.members.includes(userId)) {
+    if (channel.members.includes(userId as any)) {
       return res.status(400).json({ error: 'Already a member of this channel' });
     }
 
-    channel.members.push(userId);
+    channel.members.push(userId as any);
     await channel.save();
 
     const updatedChannel = await Channel.findById(id)
@@ -124,18 +126,18 @@ exports.joinChannel = async (req, res) => {
       .populate('members', 'username');
 
     // Broadcast channel update to all users
-    if (global.io) {
-      global.io.emit('channel:updated', { channel: updatedChannel });
+    if ((global as any).io) {
+      (global as any).io.emit('channel:updated', { channel: updatedChannel });
       // Notify the channel that user joined
-      global.io.to(`channel:${id}`).emit('user:joined-channel', {
+      (global as any).io.to(`channel:${id}`).emit('user:joined-channel', {
         userId,
         channelId: id,
-        username: req.user.username
+        username: req.user?.username
       });
     }
 
     res.json({ channel: updatedChannel });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Join channel error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
@@ -144,10 +146,10 @@ exports.joinChannel = async (req, res) => {
 // @route   POST /api/channels/:id/leave
 // @desc    Leave a channel
 // @access  Private
-exports.leaveChannel = async (req, res) => {
+export const leaveChannel = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { id } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user?.userId;
 
     const channel = await Channel.findById(id);
 
@@ -156,14 +158,14 @@ exports.leaveChannel = async (req, res) => {
     }
 
     // Check if user is a member
-    const memberIndex = channel.members.findIndex(m => m.toString() === userId);
+    const memberIndex = channel.members.findIndex((m: any) => m.toString() === userId);
 
     if (memberIndex === -1) {
       return res.status(400).json({ error: 'Not a member of this channel' });
     }
 
     // Don't allow creator to leave if they're the only member
-    if (channel.createdBy.toString() === userId && channel.members.length === 1) {
+    if ((channel.createdBy as any).toString() === userId && channel.members.length === 1) {
       return res.status(400).json({
         error: 'Cannot leave channel as the creator. Delete the channel instead.'
       });
@@ -177,18 +179,18 @@ exports.leaveChannel = async (req, res) => {
       .populate('createdBy', 'username')
       .populate('members', 'username');
 
-    if (global.io) {
-      global.io.emit('channel:updated', { channel: updatedChannel });
+    if ((global as any).io) {
+      (global as any).io.emit('channel:updated', { channel: updatedChannel });
       // Notify the channel that user left
-      global.io.to(`channel:${id}`).emit('user:left-channel', {
+      (global as any).io.to(`channel:${id}`).emit('user:left-channel', {
         userId,
         channelId: id,
-        username: req.user.username
+        username: req.user?.username
       });
     }
 
     res.json({ message: 'Left channel successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Leave channel error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }

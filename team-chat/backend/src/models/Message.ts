@@ -1,6 +1,23 @@
-const mongoose = require('mongoose');
+import mongoose, { Document, Schema } from 'mongoose';
+import { IChannel } from './Channel';
+import { IUser } from './User';
 
-const MessageSchema = new mongoose.Schema({
+export interface IMessage extends Document {
+  channelId: mongoose.Types.ObjectId | IChannel;
+  userId: mongoose.Types.ObjectId | IUser;
+  username: string;
+  content?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: 'image' | 'video' | 'audio' | 'document' | 'other';
+  fileSize?: number;
+  edited: boolean;
+  editedAt?: Date;
+  deleted: boolean;
+  createdAt: Date;
+}
+
+const MessageSchema: Schema = new Schema({
   channelId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Channel',
@@ -54,4 +71,4 @@ const MessageSchema = new mongoose.Schema({
 MessageSchema.index({ channelId: 1, createdAt: -1 });
 MessageSchema.index({ userId: 1 });
 
-module.exports = mongoose.model('Message', MessageSchema);
+export default mongoose.model<IMessage>('Message', MessageSchema);

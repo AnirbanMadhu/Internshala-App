@@ -7,8 +7,31 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.json ./
 
-# Install dependencies
+# Install dependencies (including devDependencies for build)
+RUN npm ci && npm cache clean --force
+
+# Builder stage
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/tsconfig.json ./
+
+# Copy source code
+COPY src ./src
+
+# Build TypeScript
+RUN npm run build
+
+# Production dependencies stage
+FROM base AS prod-deps
+WORKDIR /app
+
+COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Development stage
@@ -16,6 +39,8 @@ FROM base AS development
 WORKDIR /app
 
 COPY package*.json ./
+COPY tsconfig.json ./
+COPY nodemon.json ./
 RUN npm install
 
 COPY . .
@@ -28,9 +53,12 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 WORKDIR /app
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copy production dependencies
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/package*.json ./
+
+# Copy built TypeScript files
+COPY --from=builder /app/dist ./dist
 
 # Create uploads directory
 RUN mkdir -p uploads
@@ -47,4 +75,4 @@ RUN chown -R expressjs:nodejs /app
 
 USER expressjs
 
-CMD ["node", "src/server.js"]
+CMD ["node", "dist/server.js"]

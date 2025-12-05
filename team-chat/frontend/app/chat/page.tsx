@@ -32,6 +32,8 @@ export default function ChatPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -404,7 +406,7 @@ export default function ChatPage() {
     .map((t) => t.username);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar
         channels={channels}
         selectedChannelId={selectedChannelId}
@@ -412,9 +414,11 @@ export default function ChatPage() {
         onCreateChannel={() => setShowCreateModal(true)}
         onRefreshChannels={fetchChannels}
         unreadCounts={unreadCounts}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {selectedChannel ? (
           <>
             {/* Main Chat Area */}
@@ -423,33 +427,64 @@ export default function ChatPage() {
               <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm"
+                className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-3 sm:px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-sm"
               >
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    {selectedChannel.isPrivate ? '🔒' : '#'}
-                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      {selectedChannel.name}
-                    </span>
-                  </h2>
-                  {selectedChannel.description && (
-                    <p className="text-sm text-gray-600 mt-1">{selectedChannel.description}</p>
-                  )}
-                </motion.div>
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  {/* Mobile Menu Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSidebarOpen(true)}
+                    className="md:hidden p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </motion.button>
 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowSearchModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all"
-                >
-                  <Search className="w-4 h-4" />
-                  <span className="font-medium">Search</span>
-                </motion.button>
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex-1 min-w-0"
+                  >
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 flex items-center gap-1 sm:gap-2">
+                      <span className="text-sm sm:text-base md:text-xl">{selectedChannel.isPrivate ? '🔒' : '#'}</span>
+                      <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
+                        {selectedChannel.name}
+                      </span>
+                    </h2>
+                    {selectedChannel.description && (
+                      <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 truncate hidden sm:block">{selectedChannel.description}</p>
+                    )}
+                  </motion.div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Search Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowSearchModal(true)}
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all text-sm md:text-base"
+                  >
+                    <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="font-medium hidden sm:inline">Search</span>
+                  </motion.button>
+
+                  {/* Members Toggle Button (Mobile) */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setMembersOpen(!membersOpen)}
+                    className="lg:hidden p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                    title="Toggle Members"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </motion.button>
+                </div>
               </motion.div>
 
               {/* Messages */}
@@ -472,8 +507,14 @@ export default function ChatPage() {
               )}
             </div>
 
-            {/* Channel Members Sidebar */}
-            <ChannelMembers channel={selectedChannel} />
+            {/* Channel Members Sidebar - Always show on desktop, toggle on mobile */}
+            <div className={`${membersOpen ? 'block' : 'hidden lg:block'}`}>
+              <ChannelMembers
+                channel={selectedChannel}
+                isOpen={membersOpen}
+                onClose={() => setMembersOpen(false)}
+              />
+            </div>
           </>
         ) : (
           <motion.div

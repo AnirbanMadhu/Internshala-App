@@ -92,11 +92,11 @@ export const MessageList: React.FC<MessageListProps> = ({
     switch (message.fileType) {
       case 'image':
         return (
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <img
               src={fileUrl}
               alt={message.fileName || 'Image'}
-              className="max-w-xs rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+              className="max-w-[200px] sm:max-w-xs rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => window.open(fileUrl, '_blank')}
             />
           </div>
@@ -104,10 +104,10 @@ export const MessageList: React.FC<MessageListProps> = ({
 
       case 'video':
         return (
-          <div className="mt-2">
+          <div className="mt-1.5 sm:mt-2">
             <video
               controls
-              className="max-w-xs rounded-lg shadow-md"
+              className="max-w-[200px] sm:max-w-xs rounded-lg shadow-md"
               src={fileUrl}
             >
               Your browser does not support the video tag.
@@ -117,8 +117,8 @@ export const MessageList: React.FC<MessageListProps> = ({
 
       case 'audio':
         return (
-          <div className="mt-2">
-            <audio controls className="w-full max-w-xs">
+          <div className="mt-1.5 sm:mt-2">
+            <audio controls className="w-full max-w-[200px] sm:max-w-xs">
               <source src={fileUrl} />
               Your browser does not support the audio tag.
             </audio>
@@ -135,20 +135,20 @@ export const MessageList: React.FC<MessageListProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.02 }}
-            className="mt-2 flex items-center gap-2 p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all border border-white border-opacity-30"
+            className="mt-1.5 sm:mt-2 flex items-center gap-1.5 sm:gap-2 p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all border border-white border-opacity-30"
           >
-            <div className="p-2 bg-white bg-opacity-30 rounded-lg">
-              <FileText className="w-5 h-5" />
+            <div className="p-1.5 sm:p-2 bg-white bg-opacity-30 rounded-lg">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{message.fileName}</p>
+              <p className="text-xs sm:text-sm font-medium truncate">{message.fileName}</p>
               {message.fileSize && (
-                <p className="text-xs opacity-80">
+                <p className="text-[10px] sm:text-xs opacity-80">
                   {(message.fileSize / 1024 / 1024).toFixed(2)} MB
                 </p>
               )}
             </div>
-            <Download className="w-4 h-4" />
+            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
           </motion.a>
         );
     }
@@ -158,7 +158,7 @@ export const MessageList: React.FC<MessageListProps> = ({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white"
+      className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 space-y-2 sm:space-y-3 md:space-y-4 bg-gradient-to-b from-gray-50 to-white"
     >
       <AnimatePresence>
         {loading && hasMore && (
@@ -166,10 +166,11 @@ export const MessageList: React.FC<MessageListProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-center gap-2 text-gray-500 text-sm py-3"
+            className="flex items-center justify-center gap-2 text-gray-500 text-xs sm:text-sm py-2 sm:py-3"
           >
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Loading more messages...</span>
+            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span className="hidden sm:inline">Loading more messages...</span>
+            <span className="sm:hidden">Loading...</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -191,17 +192,17 @@ export const MessageList: React.FC<MessageListProps> = ({
             >
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+                className={`max-w-[85%] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg ${
                   isOwnMessage
                     ? 'bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
                     : 'bg-white text-gray-800 border border-gray-200 shadow-lg'
-                } rounded-2xl px-4 py-3 transition-all duration-200`}
+                } rounded-2xl px-3 py-2 sm:px-4 sm:py-3 transition-all duration-200`}
               >
                 {!isOwnMessage && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-xs font-bold mb-1.5 text-blue-600"
+                    className="text-[10px] sm:text-xs font-bold mb-1 sm:mb-1.5 text-blue-600"
                   >
                     {message.username}
                   </motion.div>
@@ -211,49 +212,51 @@ export const MessageList: React.FC<MessageListProps> = ({
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="space-y-2"
+                    className="space-y-1.5 sm:space-y-2"
                   >
                     <textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full p-2 border-2 border-blue-500 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-2 sm:p-2.5 border-2 border-blue-500 rounded-lg text-sm sm:text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={3}
                       autoFocus
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2">
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => saveEdit(message._id)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium shadow-md transition-colors"
+                        className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md transition-colors"
                       >
-                        <Check className="w-3 h-3" />
-                        Save
+                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="hidden sm:inline">Save</span>
+                        <span className="sm:hidden">✓</span>
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={cancelEdit}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-xs font-medium shadow-md transition-colors"
+                        className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md transition-colors"
                       >
-                        <X className="w-3 h-3" />
-                        Cancel
+                        <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="hidden sm:inline">Cancel</span>
+                        <span className="sm:hidden">✕</span>
                       </motion.button>
                     </div>
                   </motion.div>
                 ) : (
                   <>
                     {message.content && (
-                      <div className="break-words leading-relaxed">{message.content}</div>
+                      <div className="break-words leading-relaxed text-sm sm:text-base">{message.content}</div>
                     )}
 
                     {renderFileAttachment(message)}
 
-                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-opacity-20 border-white">
-                      <div className={`text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <div className="flex items-center justify-between mt-2 sm:mt-2.5 pt-1.5 sm:pt-2 border-t border-opacity-20 border-white">
+                      <div className={`text-[10px] sm:text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
                         {format(new Date(message.createdAt), 'HH:mm')}
                         {message.edited && (
-                          <span className="ml-1 italic text-xs">(edited)</span>
+                          <span className="ml-1 italic text-[10px] sm:text-xs">(edited)</span>
                         )}
                       </div>
 
@@ -261,25 +264,25 @@ export const MessageList: React.FC<MessageListProps> = ({
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="flex gap-2"
+                          className="flex gap-1 sm:gap-2"
                         >
                           <motion.button
                             whileHover={{ scale: 1.15 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => startEdit(message)}
-                            className="p-1.5 hover:bg-blue-700 rounded-lg transition-all"
+                            className="p-1 sm:p-1.5 hover:bg-blue-700 rounded-lg transition-all"
                             title="Edit message"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </motion.button>
                           <motion.button
                             whileHover={{ scale: 1.15 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => onDeleteMessage(message._id)}
-                            className="p-1.5 hover:bg-blue-700 rounded-lg transition-all"
+                            className="p-1 sm:p-1.5 hover:bg-blue-700 rounded-lg transition-all"
                             title="Delete message"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </motion.button>
                         </motion.div>
                       )}

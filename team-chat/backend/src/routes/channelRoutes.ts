@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as channelController from '../controllers/channelController';
+import authMiddleware from '../middleware/auth';
+
 const router = express.Router();
-const channelController = require('../controllers/channelController');
-const authMiddleware = require('../middleware/auth');
 
 router.use(authMiddleware);
 
@@ -11,4 +12,4 @@ router.get('/:id', channelController.getChannel);
 router.post('/:id/join', channelController.joinChannel);
 router.post('/:id/leave', channelController.leaveChannel);
 
-module.exports = router;
+export default router;

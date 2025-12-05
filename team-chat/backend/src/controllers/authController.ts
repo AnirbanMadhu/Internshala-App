@@ -1,22 +1,24 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import { Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User, { IUser } from '../models/User';
+import { AuthRequest } from '../middleware/auth';
 
 // Generate JWT token
-const generateToken = (user) => {
+const generateToken = (user: IUser): string => {
   return jwt.sign(
     {
       userId: user._id.toString(),
       username: user.username,
       email: user.email,
     },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET as string,
     { expiresIn: '7d' }
   );
 };
 
 // User signup
-exports.signup = async (req, res) => {
+export const signup = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { username, email, password } = req.body;
 
@@ -63,14 +65,14 @@ exports.signup = async (req, res) => {
       },
       token,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error);
     res.status(500).json({ error: error.message || 'Server error' });
   }
 };
 
 // User login
-exports.login = async (req, res) => {
+export const login = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
     const { email, password } = req.body;
 
@@ -112,7 +114,7 @@ exports.login = async (req, res) => {
       },
       token,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
@@ -121,7 +123,7 @@ exports.login = async (req, res) => {
 // @route   POST /api/auth/logout
 // @desc    Logout user
 // @access  Private
-exports.logout = (req, res) => {
+export const logout = (req: AuthRequest, res: Response): void => {
   res.clearCookie('token');
   res.json({ message: 'Logged out successfully' });
 };
@@ -129,9 +131,9 @@ exports.logout = (req, res) => {
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private
-exports.getMe = async (req, res) => {
+export const getMe = async (req: AuthRequest, res: Response): Promise<void | Response> => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.user?.userId).select('-password');
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -145,7 +147,7 @@ exports.getMe = async (req, res) => {
         createdAt: user.createdAt,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get user error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }

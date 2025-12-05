@@ -5,19 +5,14 @@
 /**
  * Format date to localized string
  */
-const formatDate = (date) => {
+export const formatDate = (date: Date | string): string => {
   return new Date(date).toLocaleDateString();
 };
 
 /**
  * Validate email format
  */
-const isValidEmail = (email) => {
+export const isValidEmail = (email: string): boolean => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
-};
-
-module.exports = {
-  formatDate,
-  isValidEmail,
 };

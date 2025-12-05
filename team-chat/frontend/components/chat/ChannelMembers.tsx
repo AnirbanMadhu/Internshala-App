@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Users, User as UserIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, User as UserIcon, X } from 'lucide-react';
 import { Channel, User } from '@/types';
 import { useSocket } from '@/contexts/SocketContext';
 
 interface ChannelMembersProps {
   channel: Channel;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel }) => {
+export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel, isOpen = true, onClose }) => {
   const { onlineUsers } = useSocket();
 
   // Separate members into online and offline
@@ -33,31 +35,66 @@ export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel }) => {
   const totalMembers = channel.members.length;
 
   return (
-    <motion.div
-      initial={{ x: 300, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      className="w-72 bg-gradient-to-b from-slate-100 to-slate-50 border-l border-slate-300 flex flex-col h-screen shadow-lg"
-    >
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && onClose && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        />
+      )}
+
+      {/* Members Panel */}
+      <motion.div
+        initial={{ x: 300, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 300, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        className={`
+          fixed lg:relative
+          right-0 lg:right-auto
+          w-64 sm:w-72 md:w-64 lg:w-72
+          bg-gradient-to-b from-slate-100 to-slate-50
+          border-l border-slate-300
+          flex flex-col h-screen shadow-lg
+          z-50 lg:z-auto
+          ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+          transition-transform lg:transition-none
+        `}
+      >
       {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="p-5 border-b border-slate-300 bg-gradient-to-r from-purple-600 to-blue-600"
+        className="p-3 sm:p-4 lg:p-5 border-b border-slate-300 bg-gradient-to-r from-purple-600 to-blue-600"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-              <Users className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-base sm:text-lg font-bold text-white">
                 Members
               </h2>
               <p className="text-xs text-purple-100">{totalMembers} {totalMembers === 1 ? 'member' : 'members'}</p>
             </div>
           </div>
+          {/* Close button for mobile */}
+          {onClose && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+              className="lg:hidden text-white hover:text-purple-100 transition-colors p-1"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
+          )}
         </div>
       </motion.div>
 
@@ -65,8 +102,8 @@ export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel }) => {
       <div className="flex-1 overflow-y-auto">
         {/* Online Members Section */}
         {onlineMembers.length > 0 && (
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3 px-2">
+          <div className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-3 px-1 sm:px-2">
               <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
               <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Online — {onlineMembers.length}
@@ -105,8 +142,8 @@ export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel }) => {
 
         {/* Offline Members Section */}
         {offlineMembers.length > 0 && (
-          <div className={`p-4 ${onlineMembers.length > 0 ? 'border-t border-slate-200' : ''}`}>
-            <div className="flex items-center gap-2 mb-3 px-2">
+          <div className={`p-3 sm:p-4 ${onlineMembers.length > 0 ? 'border-t border-slate-200' : ''}`}>
+            <div className="flex items-center gap-2 mb-3 px-1 sm:px-2">
               <div className="w-2 h-2 rounded-full bg-slate-400" />
               <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Offline — {offlineMembers.length}
@@ -155,5 +192,6 @@ export const ChannelMembers: React.FC<ChannelMembersProps> = ({ channel }) => {
         )}
       </div>
     </motion.div>
+    </>
   );
 };

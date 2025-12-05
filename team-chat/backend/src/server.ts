@@ -1,11 +1,14 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
-const path = require('path');
-const connectDB = require('./config/database');
+import express, { Request, Response, NextFunction } from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import path from 'path';
+import connectDB from './config/database';
+import authRoutes from './routes/authRoutes';
+import channelRoutes from './routes/channelRoutes';
+import messageRoutes from './routes/messageRoutes';
 
 dotenv.config();
 
@@ -15,7 +18,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Socket.IO setup
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
@@ -23,7 +26,7 @@ const io = socketIo(server, {
 });
 
 // Make io available globally for controllers
-global.io = io;
+(global as any).io = io;
 
 // Middleware
 app.use(cors({
@@ -38,23 +41,28 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/channels', require('./routes/channelRoutes'));
-app.use('/api/messages', require('./routes/messageRoutes'));
+app.use('/api/auth', authRoutes);
+app.use('/api/channels', channelRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
 // Track online users
-const onlineUsers = new Map();
+interface OnlineUser {
+  socketId: string;
+  username: string;
+}
+
+const onlineUsers = new Map<string, OnlineUser>();
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
   // Handle user joining
-  socket.on('user:join', (data) => {
+  socket.on('user:join', (data: { userId: string; username: string }) => {
     const { userId, username } = data;
     socket.data.userId = userId;
     socket.data.username = username;
@@ -65,7 +73,7 @@ io.on('connection', (socket) => {
     });
 
     // Send list of online users to the new user
-    let onlineUsersList = Array.from(onlineUsers.entries()).map(([userId, data]) => ({
+    const onlineUsersList = Array.from(onlineUsers.entries()).map(([userId, data]) => ({
       userId,
       ...data,
     }));
@@ -83,38 +91,38 @@ io.on('connection', (socket) => {
   });
 
   // Handle joining a channel room
-  socket.on('channel:join', (channelId) => {
+  socket.on('channel:join', (channelId: string) => {
     socket.join(`channel:${channelId}`);
     console.log(`User ${socket.data.username} joined channel ${channelId}`);
   });
 
   // Handle leaving a channel room
-  socket.on('channel:leave', (channelId) => {
+  socket.on('channel:leave', (channelId: string) => {
     socket.leave(`channel:${channelId}`);
     console.log(`User ${socket.data.username} left channel ${channelId}`);
   });
 
   // Handle new messages
-  socket.on('message:send', (data) => {
+  socket.on('message:send', (data: any) => {
     io.to(`channel:${data.channelId}`).emit('message:new', data);
   });
 
   // Handle message editing
-  socket.on('message:edit', (data) => {
+  socket.on('message:edit', (data: any) => {
     io.to(`channel:${data.channelId}`).emit('message:edited', data);
   });
 
   // Handle message deletion
-  socket.on('message:delete', (data) => {
+  socket.on('message:delete', (data: any) => {
     io.to(`channel:${data.channelId}`).emit('message:deleted', data);
   });
 
   // Handle typing indicators
-  socket.on('typing:start', (data) => {
+  socket.on('typing:start', (data: any) => {
     socket.to(`channel:${data.channelId}`).emit('typing:start', data);
   });
 
-  socket.on('typing:stop', (data) => {
+  socket.on('typing:stop', (data: any) => {
     socket.to(`channel:${data.channelId}`).emit('typing:stop', data);
   });
 
@@ -134,7 +142,7 @@ io.on('connection', (socket) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });

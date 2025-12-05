@@ -1,6 +1,16 @@
-const mongoose = require('mongoose');
+import mongoose, { Document, Schema } from 'mongoose';
+import { IUser } from './User';
 
-const ChannelSchema = new mongoose.Schema({
+export interface IChannel extends Document {
+  name: string;
+  description?: string;
+  isPrivate: boolean;
+  members: mongoose.Types.ObjectId[] | IUser[];
+  createdBy: mongoose.Types.ObjectId | IUser;
+  createdAt: Date;
+}
+
+const ChannelSchema: Schema = new Schema({
   name: {
     type: String,
     required: [true, 'Channel name is required'],
@@ -36,4 +46,4 @@ const ChannelSchema = new mongoose.Schema({
 ChannelSchema.index({ name: 1 });
 ChannelSchema.index({ members: 1 });
 
-module.exports = mongoose.model('Channel', ChannelSchema);
+export default mongoose.model<IChannel>('Channel', ChannelSchema);
