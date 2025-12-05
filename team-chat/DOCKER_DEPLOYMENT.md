@@ -32,20 +32,11 @@ git clone <your-repo-url>
 cd team-chat
 ```
 
-### 2. Use Your Existing .env File
+### 2. Configure Environment Variables
 
-Your `.env` file already contains:
-```env
-MONGODB_URI=mongodb+srv://...
-BACKEND_PORT=5000
-FRONTEND_PORT=3000
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-CLIENT_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
-```
+The project includes `.env` files in the root, backend, and frontend directories with your MongoDB Atlas configuration already set up.
 
-**No changes needed!** The Docker setup will use your existing MongoDB Atlas connection.
+**No additional configuration needed!** The Docker setup will use these existing `.env` files.
 
 ### 3. Build and Start Services
 ```bash
