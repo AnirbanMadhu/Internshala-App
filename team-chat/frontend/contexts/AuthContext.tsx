@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com').replace(/\/$/, '');
 
 interface AuthContextType {
   user: User | null;

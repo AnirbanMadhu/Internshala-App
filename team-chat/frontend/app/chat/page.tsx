@@ -15,7 +15,7 @@ import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://internshala-app-2xt0.onrender.com').replace(/\/$/, '');
 
 export default function ChatPage() {
   const { user, loading: authLoading, token } = useAuth();

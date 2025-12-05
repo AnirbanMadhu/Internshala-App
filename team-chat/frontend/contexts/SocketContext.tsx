@@ -37,7 +37,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, userId
       return;
     }
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'https://internshala-app-2xt0.onrender.com');
+    const socketInstance = io((process.env.NEXT_PUBLIC_SOCKET_URL || 'https://internshala-app-2xt0.onrender.com').replace(/\/$/, ''));
 
     socketInstance.on('connect', () => {
       console.log('Socket connected');
