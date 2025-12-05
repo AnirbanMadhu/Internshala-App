@@ -50,7 +50,13 @@ export default function ChatPage() {
         },
         credentials: 'include',
       });
-      const data = await response.json();
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (response.ok) {
         setChannels(data.channels);
@@ -81,7 +87,13 @@ export default function ChatPage() {
           credentials: 'include',
         }
       );
-      const data = await response.json();
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (response.ok) {
         // First page replaces messages, subsequent pages prepend
@@ -276,7 +288,12 @@ export default function ChatPage() {
         body: formData,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (response.ok) {
         // Emit message to other users via Socket.io
@@ -309,7 +326,12 @@ export default function ChatPage() {
         body: JSON.stringify({ name, description, isPrivate }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (response.ok) {
         await fetchChannels();
@@ -338,7 +360,12 @@ export default function ChatPage() {
         body: JSON.stringify({ content: newContent }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (response.ok) {
         if (socket) {

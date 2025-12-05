@@ -48,7 +48,12 @@ export const SearchMessages: React.FC<SearchMessagesProps> = ({
         }
       );
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('Server returned invalid response');
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Search failed');

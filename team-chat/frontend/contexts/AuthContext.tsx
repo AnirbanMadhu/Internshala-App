@@ -85,7 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      throw new Error('Server returned invalid response. Please check your connection.');
+    }
 
     if (!response.ok) {
       throw new Error(data.error || 'Login failed');
@@ -106,7 +111,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: JSON.stringify({ username, email, password }),
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      throw new Error('Server returned invalid response. Please check your connection.');
+    }
 
     if (!response.ok) {
       throw new Error(data.error || 'Signup failed');
