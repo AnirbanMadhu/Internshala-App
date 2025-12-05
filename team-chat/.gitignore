@@ -32,3 +32,6 @@ lpt[1-9]
 .next/
 dist/
 build/
+
+# Claude Code
+.claude/
