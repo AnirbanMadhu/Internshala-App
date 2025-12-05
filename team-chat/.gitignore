@@ -14,6 +14,15 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Windows
+# Windows device files
+nul
+prn
+con
+aux
+com[1-9]
+lpt[1-9]
+
 # IDE
 .vscode
 .idea
