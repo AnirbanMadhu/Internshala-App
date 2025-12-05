@@ -56,8 +56,7 @@ team-chat/
 │   │   ├── config/       # Database configuration
 │   │   └── server.js     # Main server + Socket.io
 │   ├── package.json
-│   ├── .env
-│   └── README.md
+│   └── .env
 │
 ├── frontend/             # Next.js Frontend
 │   ├── app/              # Next.js pages (no API routes)
@@ -65,8 +64,7 @@ team-chat/
 │   ├── contexts/         # React Context (Auth, Socket)
 │   ├── types/            # TypeScript types
 │   ├── package.json
-│   ├── .env
-│   └── README.md
+│   └── .env
 │
 └── README.md (this file)
 ```
@@ -251,11 +249,6 @@ All protected endpoints require `Authorization: Bearer <token>` header.
    - `NEXT_PUBLIC_SOCKET_URL` (backend URL)
 5. Deploy!
 
-## 📚 Documentation
-
-- [Backend README](./backend/README.md) - Complete backend API documentation
-- [Frontend README](./frontend/README.md) - Complete frontend documentation
-
 ## 🎯 Development Workflow
 
 1. Make changes to backend code → Test on http://localhost:5000
@@ -294,9 +287,7 @@ MIT License
 
 ## 👥 Support
 
-For issues or questions:
-- Check the documentation in `backend/README.md` and `frontend/README.md`
-- Open an issue on GitHub
+For issues or questions, open an issue on GitHub
 
 ---
 
