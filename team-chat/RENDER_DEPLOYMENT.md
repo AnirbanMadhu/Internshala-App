@@ -50,14 +50,26 @@ This guide walks you through deploying the Team Chat Application to Render (free
    - Click "Connect"
 
 3. **Configure Backend Service**
+
+   **IMPORTANT:** Use these exact settings:
+
    - **Name**: `team-chat-backend` (or your preferred name)
    - **Region**: Choose closest to you
    - **Branch**: `main`
-   - **Root Directory**: `backend`
+   - **Root Directory**: `backend` ⚠️ **Just type: backend** (not /backend or any full path)
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
    - **Instance Type**: `Free`
+
+   > **Note:** The Root Directory should be exactly `backend` - nothing else!
+
+   **Screenshot reference for Root Directory field:**
+   ```
+   Root Directory: [backend        ]  ← Type exactly this
+   ```
+   ❌ Wrong: `/backend`, `./backend`, `/opt/render/project/src/backend`
+   ✅ Correct: `backend`
 
 4. **Add Environment Variables**
    Click "Advanced" → "Add Environment Variable" and add:
@@ -93,14 +105,26 @@ This guide walks you through deploying the Team Chat Application to Render (free
    - Select the same repository
 
 2. **Configure Frontend Service**
+
+   **IMPORTANT:** Use these exact settings:
+
    - **Name**: `team-chat-frontend`
    - **Region**: Same as backend
    - **Branch**: `main`
-   - **Root Directory**: `frontend`
+   - **Root Directory**: `frontend` ⚠️ **Just type: frontend** (not /frontend or any full path)
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
    - **Instance Type**: `Free`
+
+   > **Note:** The Root Directory should be exactly `frontend` - nothing else!
+
+   **Screenshot reference for Root Directory field:**
+   ```
+   Root Directory: [frontend       ]  ← Type exactly this
+   ```
+   ❌ Wrong: `/frontend`, `./frontend`, `/opt/render/project/src/frontend`
+   ✅ Correct: `frontend`
 
 3. **Add Environment Variables**
    Click "Advanced" → "Add Environment Variable":
@@ -158,6 +182,15 @@ This guide walks you through deploying the Team Chat Application to Render (free
 - All services run on HTTPS by default
 
 ## Troubleshooting
+
+### "Service Root Directory is missing" Error
+**Error:** `Service Root Directory "/opt/render/project/src/backend" is missing`
+
+**Solution:**
+- The Root Directory field should be exactly `backend` (not `/backend` or any full path)
+- Go to your service Settings → "Build & Deploy"
+- Change Root Directory to just: `backend`
+- Save changes and Render will automatically redeploy
 
 ### Backend won't start
 - Check logs in Render Dashboard → Backend Service → Logs
