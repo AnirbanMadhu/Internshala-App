@@ -73,7 +73,6 @@ A simple real-time chat app with channels, built using Next.js and Node.js.
 - Message search
 
 ## API Endpoints
-
 - `POST /api/auth/signup` - Register
 - `POST /api/auth/login` - Login
 - `GET /api/channels` - Get channels
