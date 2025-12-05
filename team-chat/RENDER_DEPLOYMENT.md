@@ -56,20 +56,20 @@ This guide walks you through deploying the Team Chat Application to Render (free
    - **Name**: `team-chat-backend` (or your preferred name)
    - **Region**: Choose closest to you
    - **Branch**: `main`
-   - **Root Directory**: `backend` ⚠️ **Just type: backend** (not /backend or any full path)
+   - **Root Directory**: `team-chat/backend` ⚠️ **Just type: team-chat/backend**
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
    - **Instance Type**: `Free`
 
-   > **Note:** The Root Directory should be exactly `backend` - nothing else!
+   > **Note:** Since your repository has files inside a `team-chat/` subdirectory, the Root Directory must include it!
 
    **Screenshot reference for Root Directory field:**
    ```
-   Root Directory: [backend        ]  ← Type exactly this
+   Root Directory: [team-chat/backend]  ← Type exactly this
    ```
-   ❌ Wrong: `/backend`, `./backend`, `/opt/render/project/src/backend`
-   ✅ Correct: `backend`
+   ❌ Wrong: `backend`, `/backend`, `/opt/render/project/src/backend`
+   ✅ Correct: `team-chat/backend`
 
 4. **Add Environment Variables**
    Click "Advanced" → "Add Environment Variable" and add:
@@ -111,20 +111,20 @@ This guide walks you through deploying the Team Chat Application to Render (free
    - **Name**: `team-chat-frontend`
    - **Region**: Same as backend
    - **Branch**: `main`
-   - **Root Directory**: `frontend` ⚠️ **Just type: frontend** (not /frontend or any full path)
+   - **Root Directory**: `team-chat/frontend` ⚠️ **Just type: team-chat/frontend**
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
    - **Instance Type**: `Free`
 
-   > **Note:** The Root Directory should be exactly `frontend` - nothing else!
+   > **Note:** Since your repository has files inside a `team-chat/` subdirectory, the Root Directory must include it!
 
    **Screenshot reference for Root Directory field:**
    ```
-   Root Directory: [frontend       ]  ← Type exactly this
+   Root Directory: [team-chat/frontend]  ← Type exactly this
    ```
-   ❌ Wrong: `/frontend`, `./frontend`, `/opt/render/project/src/frontend`
-   ✅ Correct: `frontend`
+   ❌ Wrong: `frontend`, `/frontend`, `/opt/render/project/src/frontend`
+   ✅ Correct: `team-chat/frontend`
 
 3. **Add Environment Variables**
    Click "Advanced" → "Add Environment Variable":
@@ -187,10 +187,21 @@ This guide walks you through deploying the Team Chat Application to Render (free
 **Error:** `Service Root Directory "/opt/render/project/src/backend" is missing`
 
 **Solution:**
-- The Root Directory field should be exactly `backend` (not `/backend` or any full path)
+This happens because your Git repository has files inside a `team-chat/` subdirectory.
+
+- The Root Directory field should be `team-chat/backend` (not just `backend`)
 - Go to your service Settings → "Build & Deploy"
-- Change Root Directory to just: `backend`
+- Change Root Directory to: `team-chat/backend`
 - Save changes and Render will automatically redeploy
+
+**Why?** Your GitHub repo structure is:
+```
+Internshala-App/ (repo root)
+└── team-chat/
+    ├── backend/
+    └── frontend/
+```
+So Render needs the full path: `team-chat/backend`
 
 ### Backend won't start
 - Check logs in Render Dashboard → Backend Service → Logs
