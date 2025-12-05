@@ -203,6 +203,13 @@ Internshala-App/ (repo root)
 ```
 So Render needs the full path: `team-chat/backend`
 
+### Build fails with TypeScript errors
+**Error:** `error TS7016: Could not find a declaration file for module 'express'`
+
+**Solution:**
+This was fixed by moving TypeScript and @types packages to `dependencies` in package.json.
+If you still see this error, make sure you've pulled the latest code from GitHub.
+
 ### Backend won't start
 - Check logs in Render Dashboard → Backend Service → Logs
 - Verify MongoDB connection string is correct
